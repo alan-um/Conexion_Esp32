@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 - Conexión </title>
+    <!-- <link rel="icon" type="image/png" href="assets/favicon.png"> -->
+
+
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <!--  <header class="hero" id="hero">
+
+   
+
+  </header> -->
+
+
+
+    <!-- CONTENIDO -->
+
+    <main id="invitation">
+
+        <!-- VIDEO CARTA -->
+        <section class="papiro">
+
+            <button onclick="infoEsp()">+ Info</button>
+            <div>
+                <h1>P23: <span id="P23"></span>
+                </h1>
+            </div>
+            <button onclick="prenderLed()">Prender</button>
+            <button onclick="apagarLed()">Apagar</button>
+
+        </section>
+
+
+
+        <!-- FOOTER -->
+
+        <footer class="magic-card parchment footer-card">
+
+            <!-- <img src="assets/sello_Naki.png" class="sello">
+
+      <p>
+        Te espero para vivir juntos una noche mágica.
+      </p>
+
+      <h2>Naki</h2>
+
+      <h1>15 Años</h1>
+
+      <p>
+        05 • 09 • 2026
+      </p> -->
+
+        </footer>
+
+    </main>
+
+    <!-- <script src="js/scritpt.js"></script> -->
+
+    <script>
+        const URL = "http://esp32_alancito.local";
+        function infoEsp() {
+            try {
+                fetch(URL + "/info")
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        document.getElementById('P23').textContent = data.Pin23;
+                    })
+            }
+            catch (e) {
+                console.log(e);
+            }
+
+        }
+
+        function prenderLed() {
+            
+            fetch(URL + "/prender")
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.msg);
+                    //document.getElementById('P23').textContent = data.Pin23;
+                })
+            .catch(e => {
+                console.log(e);
+            })
+        }
+
+        function apagarLed() {
+            fetch(URL + "/apagar")
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.msg);
+                    //document.getElementById('P23').textContent = data.Pin23;
+                })
+        }
+
+        setInterval(infoEsp, 1000);
+    </script>
+
+</body>
+
+</html>

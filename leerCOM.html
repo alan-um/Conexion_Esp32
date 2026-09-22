@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Conexión Web Serial - ESP32</title>
+</head>
+<body>
+  <h1>Conectar NodeMCU ESP32 por USB</h1>
+  
+  <button id="btnConectar">Conectar ESP32</button>
+  <button id="btnDesconectar" disabled>Desconectar</button>
+  
+  <h3>Datos recibidos:</h3>
+  <pre id="log">Esperando conexión...</pre>
+
+  <script>
+    let port;
+    let reader;
+
+    const btnConectar = document.getElementById('btnConectar');
+    const btnDesconectar = document.getElementById('btnDesconectar');
+    const log = document.getElementById('log');
+
+    btnConectar.addEventListener('click', async () => {
+      if (!("serial" in navigator)) {
+        alert("Tu navegador no soporta Web Serial API. Usa Chrome, Edge o Opera.");
+        return;
+      }
+
+      try {
+        // 1. Pedir al usuario que seleccione el puerto COM
+        port = await navigator.serial.requestPort();
+
+        // 2. Abrir el puerto a 115200 baudios (debe coincidir con la ESP32)
+        await port.open({ baudRate: 115200 });
+
+        btnConectar.disabled = true;
+        btnDesconectar.disabled = false;
+        log.textContent = "Conectado. Leyendo datos...\n";
+
+        // 3. Decodificar el flujo de bytes entrante a texto
+        const textDecoder = new TextDecoderStream();
+        const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+        reader = textDecoder.readable.getReader();
+
+        // 4. Bucle para leer los datos continuamente
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            reader.releaseLock();
+            break;
+          }
+          if (value) {
+            log.textContent += value;
+          }
+        }
+      } catch (error) {
+        log.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    btnDesconectar.addEventListener('click', async () => {
+      if (reader) {
+        await reader.cancel();
+      }
+      if (port) {
+        await port.close();
+      }
+      btnConectar.disabled = false;
+      btnDesconectar.disabled = true;
+      log.textContent += "\nDesconectado.";
+    });
+  </script>
+</body>
+</html>
