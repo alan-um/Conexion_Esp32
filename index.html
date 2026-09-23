@@ -8,7 +8,7 @@
     <!-- <link rel="icon" type="image/png" href="assets/favicon.png"> -->
 
 
-    <!-- <link rel="stylesheet" href="css/style.css"> -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -39,6 +39,52 @@
 
         </section>
 
+        <section class="tablero">
+            <div class="marcador">
+                <h1>Resultado:</h1>
+                <!-- <div class="digitoMarcador">
+                    <h1 id="equipo1">0</h1>
+                    <span>Equipo 1</span>
+                </div>
+                <div class="separador">
+                    <h1>-</h1>
+                </div>
+                <div class="digitoMarcador">
+                    <h1 id="equipo1">0</h1>
+                    <span>Equipo 2</span>
+                </div> -->
+                <div class="count-group">
+                    <div class="count-box">
+                        <span id="equipo1">00</span>
+                        <small>EQUIPO 1</small>
+                    </div>
+
+                    <div class="count-box">
+                        <span id="equipo2">00</span>
+                        <small>EQUIPO 2</small>
+                    </div>
+                </div>
+            </div>
+            <div class="tiempo">
+                <h1>Tiempo de juego:</h1>
+                <div class="count-group">
+                    <div class="count-box">
+                        <span id="minutos">00</span>
+                        <small>MINUTOS</small>
+                    </div>
+
+                    <div class="count-box">
+                        <span id="segundos">00</span>
+                        <small>SEGUNDOS</small>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-iniciar" class="mostrar" onclick="iniciarPartido()">Iniciar Partido!</button>
+            <!-- <button id="btn-pausar" disabled class="ocultar" onclick="pausarPartido()">Pausar Partido!</button>
+            <button id="btn-reanudar" disabled class="ocultar" onclick="reanudarPartido()">Reanudar Partido!</button> -->
+            <button id="btn-finalizar" disabled onclick="finalizarPartido()">Finalizar Partido!</button>
+        </section>
+
 
 
         <!-- FOOTER -->
@@ -67,6 +113,8 @@
 
     <script>
         const URL = "http://esp32_alancito.local";
+
+        //setInterval(infoEsp, 1000);
         function infoEsp() {
             try {
                 fetch(URL + "/info")
@@ -74,6 +122,10 @@
                     .then(data => {
                         console.log(data);
                         document.getElementById('P23').textContent = data.Pin23;
+                    })
+                    .catch(e => {
+                        console.log("Catch del Fetch");
+                        console.log(e);
                     })
             }
             catch (e) {
@@ -83,16 +135,16 @@
         }
 
         function prenderLed() {
-            
+
             fetch(URL + "/prender")
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.msg);
                     //document.getElementById('P23').textContent = data.Pin23;
                 })
-            .catch(e => {
-                console.log(e);
-            })
+                .catch(e => {
+                    console.log(e);
+                })
         }
 
         function apagarLed() {
@@ -104,7 +156,89 @@
                 })
         }
 
-        setInterval(infoEsp, 1000);
+        //EN DESARROLLO
+        setInterval(infoMarcador,1000);
+        function infoMarcador() {
+            try {
+                fetch(URL + "/infoMarcador")
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        document.getElementById('equipo1').textContent = data.goles_equipo_1;
+                        document.getElementById('equipo2').textContent = data.goles_equipo_2;
+                    })
+                    .catch(e => {
+                        console.log("Catch del Fetch");
+                        console.log(e);
+                    })
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+
+        var timerPartido;
+        var tiempoDeJuego = 0;
+        function updateTiempo() {
+            document.getElementById("minutos").textContent = String(Math.floor(tiempoDeJuego / 60)).padStart(2, '0');
+            document.getElementById("segundos").textContent = String(tiempoDeJuego % 60).padStart(2, '0');
+            if (tiempoDeJuego > 0) {
+                tiempoDeJuego -= 1;
+            } else {
+                clearInterval(timerPartido);
+            }
+            console.log("updateTiempo");
+        }
+
+        function iniciarPartido() {
+            //clearInterval(timerPartido);
+            tiempoDeJuego = 150;
+            updateTiempo();
+            timerPartido = setInterval(updateTiempo, 1000);
+            document.getElementById("btn-iniciar").disabled = true;
+            //document.getElementById("btn-iniciar").classList.replace("mostrar","ocultar");
+            
+            /* document.getElementById("btn-pausar").disabled = false;
+            document.getElementById("btn-pausar").classList.replace("ocultar","mostrar");  
+            document.getElementById("btn-reanudar").disabled = true; */
+            
+            document.getElementById("btn-finalizar").disabled = false;
+        }
+
+        function finalizarPartido() {
+            clearInterval(timerPartido);
+            tiempoDeJuego = 0;
+            updateTiempo();
+            document.getElementById("btn-iniciar").disabled = false;
+            //document.getElementById("btn-iniciar").classList.replace("ocultar","mostrar");
+
+            /* document.getElementById("btn-pausar").disabled = true;
+            document.getElementById("btn-pausar").classList.replace("mostrar","ocultar");
+            document.getElementById("btn-reanudar").disabled = true;
+            document.getElementById("btn-reanudar").classList.replace("mostrar","ocultar"); */
+            
+            document.getElementById("btn-finalizar").disabled = true;
+        }
+        
+        /* function reanudarPartido() {
+            timerPartido = setInterval(updateTiempo, 1000);
+            document.getElementById("btn-pausar").disabled = false;
+            document.getElementById("btn-pausar").classList.replace("ocultar","mostrar");
+
+            document.getElementById("btn-reanudar").disabled = true;
+            document.getElementById("btn-reanudar").classList.replace("mostrar","ocultar");
+        }
+
+        function pausarPartido() {
+            clearInterval(timerPartido);
+            document.getElementById("btn-pausar").disabled = true;
+            document.getElementById("btn-pausar").classList.replace("mostrar","ocultar");
+
+            document.getElementById("btn-reanudar").disabled = false;
+            document.getElementById("btn-reanudar").classList.replace("ocultar","mostrar");
+        } */
+
+
     </script>
 
 </body>
